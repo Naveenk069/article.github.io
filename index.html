@@ -3,45 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Latest Tech Articles</title>
+    <title>Tech News Feed</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        h3 a { text-decoration: none; color: blue; }
-        h3 a:hover { text-decoration: underline; }
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f4; }
+        h2 { text-align: center; }
+        .article-container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
+        .article { padding: 10px; border-bottom: 1px solid #ddd; }
+        .article:last-child { border-bottom: none; }
+        .article a { text-decoration: none; font-weight: bold; color: #0073e6; }
+        .article a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
 
     <h2>Latest Tech Articles</h2>
-    <div id="articles">Loading...</div>
+    <div class="article-container" id="articles">Loading articles...</div>
 
     <script>
-        async function fetchArticles() {
-            const rssUrl = "https://www.technologyreview.com/topnews.rss";
-            const proxyUrl = "https://corsproxy.io/?"; // Proxy to bypass CORS
+        async function loadRSSFeed() {
+            const rssFeedUrl = "https://www.technologyreview.com/topnews.rss"; 
+            const proxy = "https://corsproxy.io/?";  // Bypass CORS restrictions
 
             try {
-                const response = await fetch(proxyUrl + encodeURIComponent(rssUrl));
-                const text = await response.text();
-                const data = new window.DOMParser().parseFromString(text, "text/xml");
+                const response = await fetch(proxy + encodeURIComponent(rssFeedUrl));
+                if (!response.ok) throw new Error("Network response was not ok");
 
-                let items = data.querySelectorAll("item");
+                const text = await response.text();
+                const xml = new window.DOMParser().parseFromString(text, "text/xml");
+
+                let items = xml.querySelectorAll("item");
                 let output = "";
 
                 items.forEach(el => {
                     let title = el.querySelector("title").textContent;
                     let link = el.querySelector("link").textContent;
-                    output += `<h3><a href="${link}" target="_blank">${title}</a></h3>`;
+                    let date = new Date(el.querySelector("pubDate").textContent).toLocaleDateString();
+
+                    output += `
+                        <div class="article">
+                            <a href="${link}" target="_blank">${title}</a>
+                            <p><small>Published on: ${date}</small></p>
+                        </div>
+                    `;
                 });
 
                 document.getElementById("articles").innerHTML = output;
             } catch (error) {
                 document.getElementById("articles").innerHTML = "Failed to load articles.";
-                console.error("Error fetching RSS feed:", error);
+                console.error("Error fetching RSS:", error);
             }
         }
 
-        fetchArticles();
+        loadRSSFeed();
     </script>
 
 </body>
