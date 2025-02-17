@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Latest Tech Articles</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h3 a { text-decoration: none; color: blue; }
+        h3 a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <h2>Latest Tech Articles</h2>
+    <div id="articles">Loading...</div>
+
+    <script>
+        async function fetchArticles() {
+            const rssUrl = "https://www.technologyreview.com/topnews.rss";
+            const proxyUrl = "https://corsproxy.io/?"; // Proxy to bypass CORS
+
+            try {
+                const response = await fetch(proxyUrl + encodeURIComponent(rssUrl));
+                const text = await response.text();
+                const data = new window.DOMParser().parseFromString(text, "text/xml");
+
+                let items = data.querySelectorAll("item");
+                let output = "";
+
+                items.forEach(el => {
+                    let title = el.querySelector("title").textContent;
+                    let link = el.querySelector("link").textContent;
+                    output += `<h3><a href="${link}" target="_blank">${title}</a></h3>`;
+                });
+
+                document.getElementById("articles").innerHTML = output;
+            } catch (error) {
+                document.getElementById("articles").innerHTML = "Failed to load articles.";
+                console.error("Error fetching RSS feed:", error);
+            }
+        }
+
+        fetchArticles();
+    </script>
+
+</body>
+</html>
